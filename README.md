@@ -74,32 +74,39 @@ This project explores two major machine learning paradigms through real-world da
 
 ### Part 1: Supervised Classification
 
-| Model | AUC | Precision (Class 1) |
-|-------|-----|---------------------|
-| Random Forest (default) | 0.7965 | 0.4884 |
-| Random Forest (balanced) | 0.7915 | 0.4646 |
-| Gradient Boosting | **0.8273** | 0.5568 |
-| Random Forest (tuned) | 0.8195 | **0.5909** |
+| Model | AUC | Precision | Recall | F1 Score |
+|-------|-----|-----------|--------|----------|
+| Random Forest (default) | 0.7965 | 0.4884 | 0.1784 | 0.2613 |
+| Random Forest (balanced) | 0.7915 | 0.4646 | 0.1604 | 0.2385 |
+| Gradient Boosting | **0.8273** | **0.5568** | 0.1665 | 0.2563 |
+| Random Forest (tuned: balanced_subsample, max_depth=10) | 0.8207 | 0.3268 | **0.7209** | **0.4497** |
 
 **So What:** 
-- **Gradient Boosting outperforms Random Forest** on AUC (0.827 vs 0.797), demonstrating that sequential boosting handles complex decision boundaries better than parallel bagging for this problem.
-- **`class_weight='balanced'` did not significantly help** in this case — it slightly decreased both AUC and precision. This suggests the model benefits more from parameter tuning (depth limits, more estimators) than from reweighting alone.
-- **The tuned RF achieved the best precision (0.59)** by limiting depth to 10, preventing overfitting and producing more confident predictions.
-- **Medical interpretation:** With AUC ~0.82, the model has good discriminative ability but is far from perfect. In a screening context, the precision-recall tradeoff matters: higher recall catches more diabetics (important for early intervention), but lower precision means more false alarms (unnecessary follow-up tests). The choice depends on the cost of missed diagnoses vs. unnecessary testing.
+- **Gradient Boosting outperforms all others on AUC (0.827)** and precision (0.56), demonstrating that sequential boosting handles complex decision boundaries better than parallel bagging.
+- **The tuned RF (with `balanced_subsample` and max_depth=10) dramatically improves recall to 0.72** — catching 72% of actual diabetes cases vs. only 17-18% by default models. This comes at the cost of lower precision (0.33), meaning more false positives.
+- **The tuned RF achieves the best F1 score (0.45)**, balancing precision and recall better than any other model.
+- **`class_weight='balanced'` alone did not help** — it slightly decreased both AUC and precision without improving recall. The combination of balanced_subsample + depth restriction was needed.
+- **Medical interpretation:** The precision-recall tradeoff is critical here. The tuned RF catches 72% of diabetics (high recall) but with many false alarms. For a **screening application**, high recall is preferred — missing a diabetic patient is more costly than an extra blood test. For **diagnostic confirmation**, higher precision models (Gradient Boosting) are preferred to reduce unnecessary interventions.
 
 ### Part 2: CNN Image Classification
 
 | Metric | Value |
 |--------|-------|
-| Training Time | ~32 minutes (10 epochs) |
-| Final Train Accuracy | 96.76% |
-| Final Validation Accuracy | 92.43% |
-| Test Accuracy | ~92% |
+| Training Time | ~33 minutes (10 epochs) |
+| Final Train Accuracy | 97.53% |
+| Final Validation Accuracy | 91.47% |
+| Test Accuracy | 92.10% |
+| Macro Precision | 0.9244 |
+| Macro Recall | 0.9210 |
+| Macro F1-Score | 0.9211 |
+
+**Per-class highlights:** Potato (98% F1), Capsicum (96% F1), Carrot (95% F1) were easiest to classify. Cabbage (86% F1), Cauliflower (88% F1) were hardest — likely due to visual similarity.
 
 **So What:**
-- A **simple 2-layer CNN achieves >92% accuracy** on 15-class vegetable classification, demonstrating that CNNs can learn powerful visual representations even with minimal architecture.
-- The **~4% train-val gap** indicates mild overfitting. This could be reduced with data augmentation (random flips, rotations, crops) or stronger regularization.
-- The **bottleneck is the Flatten→Dense connection** (25.6M of 25.7M total parameters). In practice, using Global Average Pooling instead of Flatten would reduce parameters by ~99% with comparable or better performance.
+- A **simple 2-layer CNN achieves 92% accuracy and 0.92 macro F1** on 15-class vegetable classification, demonstrating that CNNs can learn powerful visual representations even with minimal architecture.
+- The **~6% train-val gap** indicates mild overfitting. This could be reduced with data augmentation (random flips, rotations, crops) or stronger regularization.
+- The **confusion matrix reveals** that visually similar vegetables (Cabbage/Cauliflower, Brinjal/Tomato) account for most misclassifications — consistent with what humans would find challenging.
+- The **bottleneck is the Flatten→Dense connection** (25.6M of 25.7M total parameters). Using Global Average Pooling instead would reduce parameters by ~99% with comparable performance.
 - **For production use**, transfer learning from pre-trained models (ResNet, EfficientNet) would achieve >98% accuracy with less training time and better generalization.
 
 ---
