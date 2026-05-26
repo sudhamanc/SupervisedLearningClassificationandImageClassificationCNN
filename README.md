@@ -81,7 +81,20 @@ This project explores two major machine learning paradigms through real-world da
 | Gradient Boosting | **0.8273** | **0.5568** | 0.1665 | 0.2563 |
 | Random Forest (tuned: balanced_subsample, max_depth=10) | 0.8207 | 0.3268 | **0.7209** | **0.4497** |
 
-**So What:** 
+**Confusion Matrix Insights (Part 1):**
+
+| Model | True Neg | False Pos | False Neg | True Pos |
+|-------|----------|-----------|-----------|----------|
+| RF (default) | 43,166 | 595 | 5,553 | 1,206 |
+| RF (balanced) | 43,175 | 586 | 5,675 | 1,084 |
+| Gradient Boosting | 43,070 | 691 | 5,635 | 1,124 |
+| RF (tuned) | 38,892 | 4,869 | 1,888 | 4,871 |
+
+- The default models are very conservative: they predict almost everyone as "No Diabetes," yielding high TN but missing most actual diabetics (high FN).
+- The tuned RF shifts the decision boundary: it catches 4,871 true diabetics (vs ~1,100-1,200 for defaults) at the cost of 4,869 false alarms — a deliberate tradeoff for screening use.
+
+**So What:**
+
 - **Gradient Boosting outperforms all others on AUC (0.827)** and precision (0.56), demonstrating that sequential boosting handles complex decision boundaries better than parallel bagging.
 - **The tuned RF (with `balanced_subsample` and max_depth=10) dramatically improves recall to 0.72** — catching 72% of actual diabetes cases vs. only 17-18% by default models. This comes at the cost of lower precision (0.33), meaning more false positives.
 - **The tuned RF achieves the best F1 score (0.45)**, balancing precision and recall better than any other model.
@@ -101,6 +114,11 @@ This project explores two major machine learning paradigms through real-world da
 | Macro F1-Score | 0.9211 |
 
 **Per-class highlights:** Potato (98% F1), Capsicum (96% F1), Carrot (95% F1) were easiest to classify. Cabbage (86% F1), Cauliflower (88% F1) were hardest — likely due to visual similarity.
+
+**Confusion Matrix Insights (Part 2):**
+- The 15×15 confusion matrix shows strong diagonal dominance (most predictions correct).
+- Top confusions: Cabbage↔Cauliflower (similar round shape/color), Bean↔Bitter Gourd (elongated green vegetables).
+- 12 of 15 classes achieve >90% per-class accuracy; only 3 classes fall below due to visual similarity.
 
 **So What:**
 - A **simple 2-layer CNN achieves 92% accuracy and 0.92 macro F1** on 15-class vegetable classification, demonstrating that CNNs can learn powerful visual representations even with minimal architecture.
